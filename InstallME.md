@@ -23,7 +23,7 @@ Then you need to issue the patch command to patch (actions.c datapath.c, datapat
 
 ```
 cd openvswitch-2.4.0/datapath
-patch -p1 < iqm.patch
+patch -p1 < hygenicc.patch
 ```
 
 Copy the source and header files to the datapath folder (hygenicc.c, myflow.c, hygenicc.h and myflow.h), then we need to build and install the new openvswitch:
@@ -76,11 +76,11 @@ sudo echo 1 > /sys/kernel/modules/iqm/parameters/hygenicc_enable;
 Note that the parameters of the module are:  
 1- hygenicc_enable: enable HyGenICC congestion control module, 0 is the default which disables packet interception.  
 2- rate: the speed of the physical out link in Mbits/s, default = 1000 Mb/s.  
-3- gsosize: determines the size of GSO segment, if zero default is used, default = 0  
+3- gsosize: determines the size of GSO segment, if zero system default is used, default = 0.  
 
 Also to call the module with different parameters issue the following:
 ```
-sudo insmod hygenicc.ko hygenicc_enable=0 M=10 interval=200L;
+sudo insmod hygenicc.ko hygenicc_enable=1 rate=10000 gsosize=9000;
 ```
 
 
@@ -89,5 +89,5 @@ sudo insmod hygenicc.ko hygenicc_enable=0 M=10 interval=200L;
 To stop the loss_probe module and free the resources issue the following command:
 
 ```
-sudo rmmod -f iqm;
+sudo rmmod -f hygenicc;
 ```
