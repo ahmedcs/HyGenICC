@@ -1,0 +1,162 @@
+diff -Nau -x '.*' -EBbw original/Makefile.in hygenicc/Makefile.in
+--- original/Makefile.in	2017-03-11 11:10:21.000000000 +0800
++++ hygenicc/Makefile.in	2017-03-11 21:41:12.000000000 +0800
+@@ -281,7 +281,7 @@
+ # print-build-modules in Makefile.am.
+ build_modules = $(both_modules)	# Modules to build
+ dist_modules = $(both_modules)	# Modules to distribute
+-openvswitch_sources = actions.c datapath.c dp_notify.c flow.c \
++openvswitch_sources = hygenicc.c myflow.c actions.c datapath.c dp_notify.c flow.c \
+ 	flow_netlink.c flow_table.c vport.c vport-internal_dev.c \
+ 	vport-netdev.c linux/compat/dev-openvswitch.c \
+ 	linux/compat/exthdrs_core.c linux/compat/flex_array.c \
+@@ -298,7 +298,7 @@
+ vport_gre_sources = vport-gre.c
+ vport_lisp_sources = vport-lisp.c
+ vport_stt_sources = vport-stt.c
+-openvswitch_headers = compat.h datapath.h flow.h flow_netlink.h \
++openvswitch_headers = hygenicc.h myflow.h compat.h datapath.h flow.h flow_netlink.h \
+ 	flow_table.h vlan.h vport.h vport-internal_dev.h \
+ 	vport-netdev.h vport-vxlan.h linux/compat/gso.h \
+ 	linux/compat/include/linux/percpu.h \
+diff -Nau -x '.*' -EBbw original/Modules.mk hygenicc/Modules.mk
+--- original/Modules.mk	2017-03-11 11:10:21.000000000 +0800
++++ hygenicc/Modules.mk	2017-03-11 21:41:38.000000000 +0800
+@@ -17,6 +17,8 @@
+ dist_modules = $(both_modules)	# Modules to distribute
+ 
+ openvswitch_sources = \
++  hygenicc.c \
++	myflow.c \
+ 	actions.c \
+ 	datapath.c \
+ 	dp_notify.c \
+@@ -34,6 +36,8 @@
+ vport_stt_sources = vport-stt.c
+ 
+ openvswitch_headers = \
++	hygenicc.h \
++	myflow.h \
+ 	compat.h \
+ 	datapath.h \
+ 	flow.h \
+diff -Nau -x '.*' -EBbw original/actions.c hygenicc/actions.c
+--- original/actions.c	2017-03-11 11:10:21.000000000 +0800
++++ hygenicc/actions.c	2017-03-11 21:03:08.000000000 +0800
+@@ -39,6 +39,9 @@
+ #include "gso.h"
+ #include "vlan.h"
+ #include "vport.h"
++/**********************Ahmed**********************/
++#include "vport-netdev.h"
++/**********************Ahmed**********************/
+ 
+ static int do_execute_actions(struct datapath *dp, struct sk_buff *skb,
+ 			      struct sw_flow_key *key,
+@@ -615,15 +618,35 @@
+ 	return 0;
+ }
+ 
+-static void do_output(struct datapath *dp, struct sk_buff *skb, int out_port)
++/******************************Ahmed****************************/
++//static void do_output(struct datapath *dp, struct sk_buff *skb, int out_port)
++static void do_output(struct datapath *dp, struct sk_buff *skb, int out_port, struct sw_flow_key *key)
+ {
+ 	struct vport *vport = ovs_vport_rcu(dp, out_port);
+-
++   struct vport *inp = OVS_CB(skb)->input_vport;
++    struct net_device *in, *out;
++    in=netdev_vport_priv(inp)->dev;
++	out= netdev_vport_priv(vport)->dev;
+ 	if (likely(vport))
++    {
++        /******************************Ahmed****************************/
++        if(hygenicc_enabled())
++		{
++			if (in && out && strcmp((const char*)out->name, "ovs-system")!=0 && strcmp((const char*)in->name, "ovs-system") !=0 ) 
++			{
++				process_packet(skb, inp, vport, key);
++				//printk(KERN_INFO "OpenVswitch [%s->%s]: processing flow for protocol: %x \n", (const char*)netdev_vport_priv(inp)->dev,(const char*)netdev_vport_priv(vport)->dev);
++			}
++			return;
++		}
++       /******************************Ahmed****************************/
++	   if(skb)
+ 		ovs_vport_send(vport, skb);
++    }
+ 	else
+ 		kfree_skb(skb);
+ }
++/******************************Ahmed****************************/
+ 
+ static int output_userspace(struct datapath *dp, struct sk_buff *skb,
+ 			    struct sw_flow_key *key, const struct nlattr *attr)
+@@ -880,7 +903,12 @@
+ 			struct sk_buff *out_skb = skb_clone(skb, GFP_ATOMIC);
+ 
+ 			if (out_skb)
+-				do_output(dp, out_skb, prev_port);
++ 			{
++ 				/**********************Ahmed**********************/
++            	//do_output(dp, out_skb, prev_port);
++		    	do_output(dp, out_skb, prev_port,key);
++		    	/**********************Ahmed**********************/
++		    }
+ 
+ 			prev_port = -1;
+ 		}
+@@ -946,7 +974,12 @@
+ 	}
+ 
+ 	if (prev_port != -1)
+-		do_output(dp, skb, prev_port);
++	{
++		 /**********************Ahmed**********************/
++            //do_output(dp, skb, prev_port);
++		    do_output(dp, skb, prev_port,key);
++		    /**********************Ahmed**********************/
++	}   
+ 	else
+ 		consume_skb(skb);
+ 
+diff -Nau -x '.*' -EBbw original/datapath.c hygenicc/datapath.c
+--- original/datapath.c	2017-03-11 11:10:18.000000000 +0800
++++ hygenicc/datapath.c	2017-03-11 21:04:53.000000000 +0800
+@@ -2272,6 +2272,11 @@
+ 
+ 	pr_info("Open vSwitch switching datapath %s\n", VERSION);
+ 
++	/***************************************Ahmed**************************************/
++	init_hygenicc();
++    /***************************************Ahmed**************************************/
++
++
+ 	err = action_fifos_init();
+ 	if (err)
+ 		goto error;
+@@ -2326,6 +2331,9 @@
+ 
+ static void dp_cleanup(void)
+ {
++	/***************************************Ahmed**************************************/
++	cleanup_hygenicc();
++    /***************************************Ahmed**************************************/
+ 	dp_unregister_genl(ARRAY_SIZE(dp_genl_families));
+ 	ovs_netdev_exit();
+ 	unregister_netdevice_notifier(&ovs_dp_device_notifier);
+diff -Nau -x '.*' -EBbw original/datapath.h hygenicc/datapath.h
+--- original/datapath.h	2017-03-11 11:10:21.000000000 +0800
++++ hygenicc/datapath.h	2017-03-11 21:05:37.000000000 +0800
+@@ -32,6 +32,11 @@
+ #include "vlan.h"
+ #include "vport.h"
+ 
++/***********************Ahmed***************************/
++#include "evilbit.h"
++#include "myflow.h"
++/***********************Ahmed***************************/
++
+ #define DP_MAX_PORTS           USHRT_MAX
+ #define DP_VPORT_HASH_BUCKETS  1024
+ 
+Common subdirectories: original/linux and hygenicc/linux
