@@ -16,8 +16,8 @@
  * Please READ carefully the attached README and LICENCE file with this software
  */
 
-#ifndef EVILBIT_H
-#define EVITBIT_H 1
+#ifndef HYGENICC_H
+#define HYGENICC_H 1
 
 #include <linux/types.h>
 #include <linux/netfilter.h>
