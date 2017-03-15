@@ -29,4 +29,4 @@ Any USE or Modification to the (source code, scripts, .., etc) included in this 
 
 
 # Published Paper
-To understand the framework and proposed solution, please read the paper "HyGenICC: Hypervisor-based Generic Congestion Control for Virtualized Data Centers" \[[HyGenICC Paper PDF](download/HyGenICC.pdf)\]
+To understand the framework and proposed solution, please read the paper "HyGenICC: Hypervisor-based Generic Congestion Control for Virtualized Data Centers" \[[HyGenICC Paper PDF](download/HyGenICC.pdf)\] and the technical report \[[HyGenICC Tech-Repo PDF](download/HyGenICC-Report.pdf)\]
