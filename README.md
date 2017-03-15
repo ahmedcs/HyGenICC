@@ -23,7 +23,7 @@ The Copyright of this repository and its subfolders are held exclusively by "Ahm
 
 Any USE or Modification to the (source code, scripts, .., etc) included in this repository has to cite the following PAPERS:  
 
-1- Ahmed M Abdelmoniem, Brahim Bensaou, Amuda James Abu. HyGenICC: Hypervisor- based generic IP congestion control for virtualized data centers. In Proceedings of IEEE International Conference on Communications (IEEE ICC), Kuala Lumpur, Malaysia, May 2016. 
+1- Ahmed M Abdelmoniem, Brahim Bensaou, Amuda James Abu. HyGenICC: Hypervisor- based generic IP congestion control for virtualized data centers. In Proceedings of IEEE International Conference on Communications (IEEE ICC), Kuala Lumpur, Malaysia, May 2016.  
 2- Ahmed. M. Abdelmoniem and B. Bensaou, “Generic hypervisor-based congestion control for data centers: Implementation and evaluation,” Technical. Report. HKUST-CS15-03.
 
 **Notice, the COPYRIGHT and/or Author Information notice at the header of the (source, header and script) files can not be removed or modified.**
