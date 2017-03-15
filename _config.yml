@@ -1,1 +1,5 @@
 theme: jekyll-theme-slate
+title: Hpervisor-based Generic Congestion Control for Data Centers
+description: This project aims at developing an Generic-congestion control mechanism that leverages the programmability of end-host Hypervisors to achieve congestion-free network
+author: Ahmed MOHAMED ABDELMONIEM SAYED
+author_email: ahmedcs982@gmail.com
